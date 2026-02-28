@@ -12,8 +12,8 @@ def chron_user_tt_split (df, userCol, timestampCol, threshold):
     w = Window.partitionBy(userCol).orderBy(timestampCol)
     df_rank = df.withColumn("pr", F.percent_rank().over(w))
     
-    train = df_rank.filter(df_rank.pr <= threshold)
-    test = df_rank.filter(df_rank.pr > threshold)
+    train = df_rank.filter(df_rank.pr <= threshold).drop('pr')
+    test = df_rank.filter(df_rank.pr > threshold).drop('pr')
     return train, test
 
 # NB: percent_rank is an approximation for the train-test split as some users submitted multiple ratings at the same timestamp
