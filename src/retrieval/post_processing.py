@@ -29,8 +29,8 @@ def remove_duplicates(df_rec, df_seen):
         
     '''
     exploded = df_rec.select(
-    df_rec.userId,
-    F.explode('recommendations').alias('rec')
+        df_rec.userId,
+        F.explode('recommendations').alias('rec')
     ).select(
         'userId',
         'rec.*'
@@ -46,3 +46,4 @@ def remove_duplicates(df_rec, df_seen):
     )
     
     return filtered
+
