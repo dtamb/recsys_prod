@@ -17,4 +17,4 @@ def chron_user_tt_split (df, userCol, timestampCol, threshold):
     return train, test
 
 # NB: percent_rank is an approximation for the train-test split as some users submitted multiple ratings at the same timestamp
-# For MovieLens20, this worked out to 0.802 and was deemed acceptable
+# For MovieLens20, this worked out to ~0.802 for a 0.8 threshold and was deemed acceptable
