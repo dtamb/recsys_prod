@@ -210,3 +210,10 @@ __marimo__/
 # Keep folder structure
 data/raw/*
 !data/raw.gitkeep
+
+Ignore MLflow local runs
+mlruns/*
+
+# Ignore Spark checkpoints / temp files
+*.parquet
+*.csv
