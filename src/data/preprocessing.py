@@ -73,7 +73,8 @@ def standardiser(
         scale_std: True if std is 0
         
     Returns:
-        Spark DataFrame with input column now standardised
+        scaled_df: Spark DataFrame with input column now standardised
+        scaler_model: scaler model fit to dataset
     
     '''
     
@@ -86,7 +87,9 @@ def standardiser(
     
     scaler_model = scaler.fit(df)
     
-    return scaler_model.transform(df).drop(input_col)
+    scaled_df = scaler_model.transform(df).drop(input_col)
+    
+    return scaled_df, scaler_model
         
         
         
