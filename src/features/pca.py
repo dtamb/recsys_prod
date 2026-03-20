@@ -16,10 +16,13 @@ def fit_pca(df_scaled, item_col, input_col="scaled_features", output_col="pca_fe
         k (int): number of feature dimensions
     
     Returns:
-        Spark DataFrame with a vector column containing k-dimension features
+        pca_df: Spark DataFrame with a vector column containing k-dimension features
+        pca_model: Fitted PCA Model
     '''
     
     pca = PCA(k=k, inputCol=input_col, outputCol=output_col)
     pca_model = pca.fit(df_scaled)
     
-    return pca_model.transform(df_scaled).select(item_col, output_col)
+    pca_df = pca_model.transform(df_scaled).select(item_col, output_col)
+    
+    return [pca_df, pca_model]
