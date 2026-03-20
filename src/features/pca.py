@@ -17,7 +17,7 @@ def fit_pca(df_scaled, item_col, input_col="scaled_features", output_col="pca_fe
         output_col: reduced dimensions column name
         k (int): number of feature dimensions
     
-    Returns (list):
+    Returns:
         pca_df: Spark DataFrame with a vector column containing k-dimension
             features
         pca_model: Fitted PCA Model
