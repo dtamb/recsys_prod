@@ -28,7 +28,7 @@ def fit_pca(df_scaled, item_col, input_col="scaled_features", output_col="pca_fe
     
     pca_df = pca_model.transform(df_scaled).select(item_col, output_col)
     
-    return [pca_df, pca_model]
+    return pca_df, pca_model
 
 def compute_pca_cumsum(pca_model):
     '''
