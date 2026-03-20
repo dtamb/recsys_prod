@@ -1,6 +1,7 @@
 # pca.py
 
 from pyspark.ml.feature import PCA
+import numpy as np
 
 def fit_pca(df_scaled, item_col, input_col="scaled_features", output_col="pca_features", k=100):
     
@@ -26,3 +27,23 @@ def fit_pca(df_scaled, item_col, input_col="scaled_features", output_col="pca_fe
     pca_df = pca_model.transform(df_scaled).select(item_col, output_col)
     
     return [pca_df, pca_model]
+
+def compute_pca_cumsum(pca_model):
+    '''
+    Takes a PCA model and returns the cumulative sum of variances.
+    
+    Args:
+        Spark PCA model
+        
+    Returns:
+        Cumulative Variance Scores over k
+        
+    '''
+    
+    explained_var = np.array(pca_model.explainedVariance)
+    cumulative = explained_var.cumsum()
+    
+    return cumulative
+        
+    
+    
