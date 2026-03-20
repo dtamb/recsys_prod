@@ -33,7 +33,7 @@ def pivot_genome_scores (
     '''
     
     pivoted = pivot_table(df, index_col, column_col, value_col, agg_func)
-    return pivoted.fillna(fill_value).orderBy(index_col)
+    return pivoted.fillna(fill_value)
     
 def build_genome_pca_features(genome_df, k=45, scale_std=False):
     
