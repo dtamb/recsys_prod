@@ -53,3 +53,42 @@ def vectorise(df, exclude_cols, output_col='features'):
     )
     
     return assembler.transform(df).select(*exclude_cols, output_col)
+
+def standardiser(
+    df, input_col='features',
+    output_col ='scaled_features',
+    scale_mean = True, scale_std = True
+):
+    '''
+    Standardises selected column of a Spark DataFrame.
+    Options to standardise around mean=0 or std_dv =1
+    
+    NB: If requiring multiple columns standardised, use vectorise first.
+    
+    Args:
+        df: Spark DataFrame
+        input_col: column to scale
+        ouput_col: name of new column
+        scale_mean: True if mean is 0
+        scale_std: True if std is 0
+        
+    Returns:
+        Spark DataFrame with input column now standardised
+    
+    '''
+    
+    scaler = StandardScaler(
+        inputCol = input_col,
+        outputCol = output_col,
+        withMean = scale_mean,
+        withStd = scale_std
+    )
+    
+    scaler_model = scaler.fit(df)
+    
+    return scaler_model.transform(df).drop(input_col)
+        
+        
+        
+        
+        
