@@ -1,0 +1,25 @@
+# pca.py
+
+from pyspark.ml.feature import PCA
+
+def fit_pca(df_scaled, item_col, input_col="scaled_features", output_col="pca_features", k=100):
+    
+    '''
+    Simplifies a scaled and vectorised dataset to k-dimensions using PCA.
+    
+    Args: 
+        df_scaled: Spark DataFrame with a scaled and vectorised column to reduce
+            dimensions of
+        item_col: items columns
+        input_col: scaled and vectorised column of features
+        output_col: reduced dimensions column name
+        k (int): number of feature dimensions
+    
+    Returns:
+        Spark DataFrame with a vector column containing k-dimension features
+    '''
+    
+    pca = PCA(k=k, inputCol=input_col, outputCol=output_col)
+    pca_model = pca.fit(df_scaled)
+    
+    return pca_model.transform(df_scaled).select(item_col, output_col)
