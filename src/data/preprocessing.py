@@ -5,7 +5,7 @@ from pyspark.sql.functions import (
     first, sum, avg, min, max, count, countDistinct
 )
 
-from pyspark.ml.feature import VectorAssembler, StandardScaler
+from pyspark.ml.feature import VectorAssembler, StandardScaler, Normalizer
 
 def pivot_table(df, index_col, column_col, value_col, agg_func=first):
     '''
@@ -91,7 +91,28 @@ def standardiser(
     
     return scaled_df, scaler_model
         
+def normaliser(df, input_col='features',
+               output_col='norm_features', p=2
+              ):
+    '''
+    Normalise vectors in a Spark DataFrame.
+    
+    Args:
+        df: Spark DataFrame
+        input_col: column containing vectors
+        output_col: new column for normalised vectors
+        p: norm type (1 = L1, 2 = L2)
         
+    Returns:
+        DataFrame with normalised vectors
+        
+    '''
+    normaliser = Normalizer(
+        inputCol=input_col, outputCol=output_col, p=p
+    )
+    
+    return normaliser.transform(df)
+    
         
         
         
