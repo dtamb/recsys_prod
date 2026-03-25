@@ -111,7 +111,7 @@ def normaliser(df, input_col='features',
         inputCol=input_col, outputCol=output_col, p=p
     )
     
-    return normaliser.transform(df)
+    return normaliser.transform(df).drop(input_col)
     
         
         
