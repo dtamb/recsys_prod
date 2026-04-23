@@ -19,7 +19,7 @@ def build_item_features(ratings_df, mu, C=50):
     
     '''
     
-    # Creating item columns of average rating, rating sum and rating count
+    # Creating item columns of average rating and rating count
     item_features = ratings_df.groupBy(cfg.ITEM_COL).agg(
         F.avg(cfg.RATING_COL).alias('item_avg_rating'),
         F.count(cfg.RATING_COL).alias('item_rating_count')
@@ -33,10 +33,10 @@ def build_item_features(ratings_df, mu, C=50):
     
     item_features = item_features.withColumn(
         'item_bayesian_avg',
-        (F.lit(C)*F.lit(mu) + F.col('item_avg_rating')*F.col('item_rating_count'))/(F.lit(C) + F.col('item_rating_count'))
+        (C*mu + F.col('item_avg_rating')*F.col('item_rating_count'))/(C + F.col('item_rating_count'))
     ).withColumn(
         'log_rating_count',
         F.log1p(F.col('item_rating_count'))
     )
     
-    return item_features.drop('item_rating_count')
+    return item_features
