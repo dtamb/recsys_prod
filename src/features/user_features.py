@@ -41,5 +41,5 @@ def build_user_features(ratings_df):
         F.datediff(F.lit(max_timestamp), F.col('last_activity'))
     )
     
-    return user_features.drop('user_rating_count','last_activity') 
+    return user_features.drop('last_activity') 
     
