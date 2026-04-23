@@ -1,4 +1,4 @@
-# item_features.py
+# tag_features.py
 
 from data.preprocessing import pivot_table, vectorise, standardiser
 from features.pca import fit_pca
@@ -65,6 +65,6 @@ def build_genome_pca_features(genome_df, k=45, scale_std=False):
     return genome_scaler_model, genome_pca_df, genome_pca_model
     
     
-    
+
     
     
