@@ -49,7 +49,7 @@ def build_user_features(ratings_df, global_std, k_shrinkage):
         'days_since_last_activity',
         F.datediff(F.lit(max_timestamp), F.col('last_activity'))
     ).withColumn(
-        'user_std_shurnk',
+        'user_std_shrunk',
         (F.col('user_rating_count')/(F.col('user_rating_count')+k_shrinkage))*F.col('user_rating_std') + 
          (k_shrinkage/(F.col('user_rating_count')+k_shrinkage))*global_std
     )
