@@ -14,9 +14,9 @@ def build_user_features(ratings_df):
     Returns:
         user_features: Spark DataFrame with the following features:
             user_avg_rating
-            log_rating_count: log(1 + rating count) to avoid nulls from new
-                users
-           days_since_last_activity: calculated from latest timestamp in
+            log_rating_count: log(1 + rating count) to avoid nulls from new users
+            user_rating_std: standard deviation of user ratings
+            days_since_last_activity: calculated from latest timestamp in
                dataset
     '''
     
@@ -25,10 +25,11 @@ def build_user_features(ratings_df):
         F.max(cfg.TIMESTAMP_COL).alias('max_ts')
     ).collect()[0]['max_ts']
     
-    # Creating user columns of average rating, rating count and last activity
+    # Creating user columns of average rating, rating count, rating standard deviation and last activity
     user_features = ratings_df.groupBy(cfg.USER_COL).agg(
         F.avg(cfg.RATING_COL).alias('user_avg_rating'),
         F.count(cfg.RATING_COL).alias('user_rating_count'),
+        F.coalesce(F.stddev(cfg.RATING_COL), F.lit(0)).alias('user_rating_std'),
         F.max(cfg.TIMESTAMP_COL).alias('last_activity')
     )
     
