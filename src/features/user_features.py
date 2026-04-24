@@ -23,9 +23,9 @@ def build_user_features(ratings_df, global_std, k_shrinkage):
             user_avg_rating
             log_rating_count: log(1 + rating count) to avoid nulls from new users
             user_rating_std: standard deviation of user ratings
-            user_bayes_std: bayesian shrunk standard deviation of user ratings
             days_since_last_activity: calculated from latest timestamp in
                dataset
+            user_bayes_std: bayesian shrunk standard deviation of user ratings
     '''
     
     # Calculating max timestamp of df to use as "today"
@@ -49,7 +49,7 @@ def build_user_features(ratings_df, global_std, k_shrinkage):
         'days_since_last_activity',
         F.datediff(F.lit(max_timestamp), F.col('last_activity'))
     ).withColumn(
-        'user_std_shrunk',
+        'user_bayes_std',
         (F.col('user_rating_count')/(F.col('user_rating_count')+k_shrinkage))*F.col('user_rating_std') + 
          (k_shrinkage/(F.col('user_rating_count')+k_shrinkage))*global_std
     )
