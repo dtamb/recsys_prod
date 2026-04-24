@@ -7,6 +7,9 @@ def build_item_features(ratings_df, mu, C=50):
     '''
     Creates a dataframe of averages, bayesian averages and log(1+ranking count)
     over each item in the dataframe.
+    Bayesian Average = (C * mu + item_i_sum)/(C + item_i_num_ratings)
+        where mu = global average, C = confidence number
+        NB: item_i_sum = item_i_avg * item_i_num_ratings
     
     Args:
         ratings_df: Spark Dataframe of ratings by movie and item
@@ -26,11 +29,6 @@ def build_item_features(ratings_df, mu, C=50):
     )
     
     # Bayesian Average
-    # item_i_bay_avg = (C * mu + item_i_sum)/(C + item_i_num_ratings)
-    # where mu = global average, C = confidence number
-    # 
-    # NB: item_i_sum = item_i_avg * item_i_num_ratings
-    
     item_features = item_features.withColumn(
         'item_bayesian_avg',
         (C*mu + F.col('item_avg_rating')*F.col('item_rating_count'))/(C + F.col('item_rating_count'))
