@@ -14,7 +14,7 @@ def compute_item_bias(item_features_df, mu, reg_param=10):
     Args:
         item_features_df: Spark DataFrame with item_rating_count, item_avg_rating
         mu: global ratings mean
-        reg_param: regularisation parameter, typically 5 - 20
+        reg_param: regularisation parameter, typically 5 - 20 (NB: must be same as compute_user_bias reg_param)
         
     Returns:
         item_features_df: original Spark DataFrame with column of item biases
@@ -28,13 +28,20 @@ def compute_item_bias(item_features_df, mu, reg_param=10):
         
     return item_bias.select(cfg.ITEM_COL, 'item_bias')
 
-def compute_user_bias(train_df, user_features_df, item_bias_df, mu, delta=10):
+def compute_user_bias(train_df, user_features_df, item_bias_df, mu, reg_param=10):
     
     '''
     Computes user biases for each user with the formula: 
     user_bias = sum(ratings - mu - item_bias) / (delta + num_ratings)
     OR
     user_bias = (num_ratings(user_avg_rating - mu) - sum(item_bias)) / (delta + num_ratings)
+    
+    Args: 
+        train_df: Spark DF with movieID and userID
+        user_features_df: Spark DF in format from build_user_features from user_features.py
+        item_features_df: Spark DF in format from build_item_features from item_features.py
+        mu: global average rating
+        reg_param: regularisation parameter, typically 5 - 20 (NB: must be same as compute_item_bias reg_param)
     
     '''
     
@@ -58,7 +65,7 @@ def compute_user_bias(train_df, user_features_df, item_bias_df, mu, delta=10):
         'user_bias',
         (
             F.col('user_rating_count')*(F.col('user_avg_rating') - mu) - F.col('sum_item_bias')
-        ) / (delta + F.col('user_rating_count'))
+        ) / (reg_param + F.col('user_rating_count'))
     )
 
     return user_bias.select(cfg.USER_COL, 'user_bias')
