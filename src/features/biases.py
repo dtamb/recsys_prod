@@ -43,6 +43,8 @@ def compute_user_bias(train_df, user_features_df, item_bias_df, mu, reg_param=10
         mu: global average rating
         reg_param: regularisation parameter, typically 5 - 20 (NB: must be same as compute_item_bias reg_param)
     
+    Returns:
+        user_bias: Spark DF with userID and user bias columns
     '''
     
     # Select movieID and userID columns only for performance
@@ -69,3 +71,36 @@ def compute_user_bias(train_df, user_features_df, item_bias_df, mu, reg_param=10
     )
 
     return user_bias.select(cfg.USER_COL, 'user_bias')
+
+def compute_expected_rating(train_df, user_bias, item_bias, mu):
+    '''
+    Computes expected rating with the formula:
+        exp_rat = mu + user_bias + item_bias
+    
+    Args:
+        train_df: Spark DF with userID, movieID and ratings columns
+        user_bias: Spark DF with userID and user_bias columns
+        item_bias: Spark DF with itemID and item_bias columns
+        mu: global average rating
+    
+    Returns:
+        expected rating: userID, itemID, rating, expected rating columns
+    '''
+    
+    # Drop timestamp data
+    train_df = train_df.drop(cfg.TIMESTAMP_COL)
+    
+    # Join user and item biases with ratings via train data
+    expected_rating = train_df.join(
+        user_bias, on=cfg.USER_COL, how='inner'
+    ).join(
+        item_bias, on=cfg.ITEM_COL, how='inner'
+    )
+    
+    # Compute expected rating
+    expected_rating = expected_rating.withColumn(
+        'expected_rating',
+        mu+F.col('user_bias')+F.col('item_bias')
+    )
+    
+    return expected_rating
