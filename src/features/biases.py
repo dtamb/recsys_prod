@@ -104,3 +104,42 @@ def compute_expected_rating(train_df, user_bias, item_bias, mu):
     )
     
     return expected_rating
+
+def compute_user_weights(expected_rating, user_feature, tau=1, epsilon=1e-6):
+    '''
+    User weights for each film to use on movie tags and compute a representative user tag for each user.
+    
+    weight = tanh( (rating - expected_rating) / (tau*user_bayes_std + epsilon) )
+       where tau: variable to control smoothing, 
+           epsilon: error correction to avoid dividing by 0
+           tanh: used to smooth and bound weights to (-1,1)
+           
+    
+    Args: 
+        expected_rating: Spark DF from compute_expected_rating function (userID, movieID, rating, expected_rating)
+        user_feature: Spark DF from features/user_features.py (userID, user_bayes_std)
+        tau: smoothing variable, typically from 0.5 to 3
+        epsilon: error correction for zero-value user_bayes_std 
+        
+    Returns:
+        weighting: Spark DF with userID, movieID, weight
+            weight is between (-1,1) and represents how significant the film represents the user as a function
+                of the users rating variability (user_bayes_std), their rating and expected rating
+    
+    '''
+    # Select required columns from expected_rating and user_feature
+    expected_rating = expected_rating.select(cfg.USER_COL, cfg.ITEM_COL, cfg.RATING_COL,'expected_rating')
+    user_feature = user_feature.select(cfg.USER_COL, 'user_bayes_std')
+    
+    # Join dataframes and calculate weightings
+    weighting = expected_rating.join(
+        user_feature, on=cfg.USER_COL, how='inner'
+    ).withColumn(
+        'weight',
+        F.tanh(
+            (F.col(cfg.RATING_COL) - F.col('expected_rating'))/(tau * F.col('user_bayes_std') + epsilon)
+        )
+    )
+    
+    return weighting.select(cfg.USER_COL, cfg.ITEM_COL, 'weight')
+    
