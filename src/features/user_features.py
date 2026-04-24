@@ -3,19 +3,27 @@
 from pyspark.sql import functions as F
 import configs.settings as cfg
 
-def build_user_features(ratings_df):
+def build_user_features(ratings_df, global_std, k_shrinkage):
     
     '''
     Converts a ratings dataframe (train data) into user_features for content filtering.
     
+    Bayesian Shrinkage Formula: n_u/(n_u + k)*u_std + k/(n_u+k)*global_std
+        where n_u = user_rating_count,
+            k= shrinkage strength
+    
+    Bayesian shrinkage to ensure that users with low ratings count tend towards global std as they are unstable.
+    
     Args:
         ratings_df: Spark ratings DataFrame (MovieLens20M)
+        global_std: global standard deviation of ratings dataset
         
     Returns:
         user_features: Spark DataFrame with the following features:
             user_avg_rating
             log_rating_count: log(1 + rating count) to avoid nulls from new users
             user_rating_std: standard deviation of user ratings
+            user_bayes_std: bayesian shrunk standard deviation of user ratings
             days_since_last_activity: calculated from latest timestamp in
                dataset
     '''
@@ -40,7 +48,12 @@ def build_user_features(ratings_df):
     ).withColumn(
         'days_since_last_activity',
         F.datediff(F.lit(max_timestamp), F.col('last_activity'))
+    ).withColumn(
+        'user_std_shurnk',
+        (F.col('user_rating_count')/(F.col('user_rating_count')+k_shrinkage))*F.col('user_rating_std') + 
+         (k_shrinkage/(F.col('user_rating_count')+k_shrinkage))*global_std
     )
-    
+
+         
     return user_features.drop('last_activity') 
     
