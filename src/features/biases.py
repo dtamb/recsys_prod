@@ -1,8 +1,5 @@
 # biases.py
 
-# +-------+------------------+-----------------+------------------+------------------+
-# |movieId|   item_avg_rating|item_rating_count| item_bayesian_avg|  log_rating_count
-
 from pyspark.sql import functions as F
 import configs.settings as cfg
 
@@ -29,7 +26,7 @@ def compute_item_bias(item_features_df, mu, reg_param=10):
         (F.col('item_rating_count')*(F.col('item_avg_rating')-mu))/(reg_param+F.col('item_rating_count'))
     )
         
-    return item_bias
+    return item_bias.select(cfg.ITEM_COL, 'item_bias')
 
 def compute_user_bias(train_df, user_features_df, item_bias_df, mu, delta=10):
     
@@ -40,13 +37,19 @@ def compute_user_bias(train_df, user_features_df, item_bias_df, mu, delta=10):
     user_bias = (num_ratings(user_avg_rating - mu) - sum(item_bias)) / (delta + num_ratings)
     
     '''
+    
+    # Select movieID and userID columns only for performance
+    train_df = train_df.select(cfg.USER_COL, cfg.ITEM_COL)
 
     # Join item biases to users via train dataset, then sum item biases per user
     user_sum_item_biases = train_df.join(
-        item_bias_df, on=cfg.ITEM_COL, how='inner'
+        item_bias_df, on=cfg.ITEM_COL, how='left'
     ).groupBy(cfg.USER_COL).agg(
-        F.sum('item_bias').alias('sum_item_bias')
+        F.sum(
+            F.coalesce(F.col('item_bias'), F.lit(0.0)) # null --> 0 for empty items
+        ).alias('sum_item_bias')
     )
+    
     
     # Join summed item biases to user features and then compute user biases
     user_bias = user_features_df.join(
@@ -58,4 +61,4 @@ def compute_user_bias(train_df, user_features_df, item_bias_df, mu, delta=10):
         ) / (delta + F.col('user_rating_count'))
     )
 
-    return user_bias.drop('sum_item_bias')
+    return user_bias.select(cfg.USER_COL, 'user_bias')
