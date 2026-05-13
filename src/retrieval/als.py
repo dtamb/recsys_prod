@@ -13,14 +13,16 @@ def generate_candidates(model, train, k):
         Agrs:
             - model: model generated from ALS training
             - train: training data for duplicate comparison
-            - k: number of candidates (due to filtering, actual candidate number
-            will be <=k)
+            - k: final number of candidates, NB: due to duplicates 1.3*k will be computed in ALS
         Returns:
             List of recommendations per user, filtered for already seen items
     '''
-    recs = model.recommendForAllUsers(k)
     
-    return remove_duplicates(recs, train)
+    # Retrieves 1.3 * k to allow for duplicates
+    recs = model.recommendForAllUsers(int(k*1.3))
+    
+    # Expands recommendation array and removes duplicates returning the top-k ratings
+    return remove_duplicates(recs, train, k)
 
 
 def train(train_df, config):
@@ -33,7 +35,7 @@ def train(train_df, config):
             'alpha': 20,
             'maxIter': 15,
             'rank': 50,
-            'implicitPrefs': True,
+            'implicitPrefs': False,
             'regParam': 0.05,
             'coldStartStrategy':'drop',
             'nonnegative': False,

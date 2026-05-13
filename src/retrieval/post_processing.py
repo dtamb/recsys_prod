@@ -3,8 +3,9 @@
 # Post processing on retrieval results
 
 from pyspark.sql import functions as F
+from pyspark.sql.window import Window
 
-def remove_duplicates(df_rec, df_seen):
+def remove_duplicates(df_rec, df_seen, k):
     '''
     Args: df_rec (data frame with recommendations)
         
@@ -16,11 +17,11 @@ def remove_duplicates(df_rec, df_seen):
              |    |    |-- movieId: integer (nullable = true)
              |    |    |-- rating: float (nullable = true)
          
-         train (df with dupes, i.e. training data)
+         df_seen (df with duplicates, i.e. training data)
      
-    Output: df_seen (df with items seen by users, i.e. training data)
+    Output: filtered (df with items seen by users, i.e. training data)
     
-        df_seen format:
+        filtered format:
             root
              |-- userId: integer (nullable = true)
              |-- movieId: integer (nullable = true)
@@ -28,6 +29,8 @@ def remove_duplicates(df_rec, df_seen):
              |-- timestamp: timestamp (nullable = true)
         
     '''
+    
+    # Expand out recommendations array and structure
     exploded = df_rec.select(
         df_rec.userId,
         F.explode('recommendations').alias('rec')
@@ -36,6 +39,7 @@ def remove_duplicates(df_rec, df_seen):
         'rec.*'
     )
 
+    # Remove recommendations that are already seen
     filtered = exploded.join(
         df_seen.select('userId', 'movieId'),
         on=['userId', 'movieId'],
@@ -44,6 +48,15 @@ def remove_duplicates(df_rec, df_seen):
         ['userId', 'rating'],
         ascending=[True, False]
     )
+    
+    # Create window function to  re-rank and select top k values
+    window = Window.partitionBy("userId").orderBy(F.desc("rating"))
+
+    filtered = filtered.withColumn(
+        "rank", F.row_number().over(window)
+    ).filter(
+        F.col("rank") <= k
+    ).drop("rank")
     
     return filtered
 
