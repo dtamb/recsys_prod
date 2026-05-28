@@ -18,8 +18,8 @@ def generate_candidates(model, train, k):
             List of recommendations per user, filtered for already seen items
     '''
     
-    # Retrieves 1.3 * k to allow for duplicates
-    recs = model.recommendForAllUsers(int(k*1.3))
+    # Retrieves 15 * k to allow for duplicates
+    recs = model.recommendForAllUsers(k*15)
     
     # Expands recommendation array and removes duplicates returning the top-k ratings
     return remove_duplicates(recs, train, k)
@@ -35,7 +35,7 @@ def train(train_df, config):
             'alpha': 20,
             'maxIter': 15,
             'rank': 50,
-            'implicitPrefs': False,
+            'implicitPrefs': True,
             'regParam': 0.05,
             'coldStartStrategy':'drop',
             'nonnegative': False,
