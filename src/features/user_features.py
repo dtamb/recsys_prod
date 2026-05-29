@@ -21,7 +21,7 @@ def build_user_features(ratings_df, global_std, k_shrinkage):
     Returns:
         user_features: Spark DataFrame with the following features:
             user_avg_rating
-            log_rating_count: log(1 + rating count) to avoid nulls from new users
+            user_log_rating_count: log(1 + rating count) to avoid nulls from new users
             user_rating_std: standard deviation of user ratings
             days_since_last_activity: calculated from latest timestamp in
                dataset
@@ -43,7 +43,7 @@ def build_user_features(ratings_df, global_std, k_shrinkage):
     
     # Creating user features of log(rating_count + 1) and days since last activity
     user_features = user_features.withColumn(
-        'log_rating_count',
+        'user_log_rating_count',
         F.log1p(F.col('user_rating_count'))
     ).withColumn(
         'days_since_last_activity',

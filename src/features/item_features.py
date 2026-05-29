@@ -33,7 +33,7 @@ def build_item_features(ratings_df, mu, C=50):
         'item_bayesian_avg',
         (C*mu + F.col('item_avg_rating')*F.col('item_rating_count'))/(C + F.col('item_rating_count'))
     ).withColumn(
-        'log_rating_count',
+        'item_log_rating_count',
         F.log1p(F.col('item_rating_count'))
     )
     
