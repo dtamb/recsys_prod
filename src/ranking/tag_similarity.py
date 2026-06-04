@@ -10,7 +10,7 @@ def compute_tag_similarity(user_tag_norm, item_tag_norm, retrieval_df):
     similarity_score = retrieval_df.join(
         user_tag_norm, on=cfg.USER_COL, how='inner'
     ).join(
-        item_tag_norm, on=cfg.ITEM_COL, how='left'
+        item_tag_norm, on=cfg.ITEM_COL, how='inner'
     )
     
     # Convert to arrays and then dot product while still using Spark architecture
